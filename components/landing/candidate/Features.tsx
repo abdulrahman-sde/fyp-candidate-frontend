@@ -15,7 +15,7 @@ export function Features() {
   ];
 
   return (
-    <section className="w-full bg-white py-24 relative overflow-hidden">
+    <section id="features" className="w-full bg-white py-24 relative overflow-hidden">
       <div className="container px-4 md:px-6 mx-auto relative z-10">
         <div className="text-center mb-16 max-w-2xl mx-auto">
           <h2 className="text-3xl md:text-5xl font-medium tracking-tight text-neutral-900 mb-6">Designed for Growth</h2>
