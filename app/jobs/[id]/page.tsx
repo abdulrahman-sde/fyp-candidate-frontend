@@ -1,5 +1,6 @@
 import { LandingHeader } from "@/components/landing/candidate/LandingHeader";
 import { BackButton } from "@/components/jobs/BackButton";
+import { JobApplicationFlow } from "@/components/jobs/JobApplicationFlow";
 import {
    Briefcase,
    Building2,
@@ -273,12 +274,15 @@ export default async function JobDetailPage({
                      </div>
 
                      <div className="mt-8 space-y-3">
-                        <button className="group inline-flex w-full items-center justify-between rounded-full bg-emerald-500 px-5 py-3 text-sm font-medium text-white transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-emerald-600 active:scale-[0.98]">
-                           Apply with Aura Profile
-                           <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/20 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:-translate-y-[1px]">
-                              <Briefcase className="h-3.5 w-3.5" />
-                           </span>
-                        </button>
+                        <JobApplicationFlow
+                           job={{
+                              title: job.title,
+                              company: job.company,
+                              location: job.location,
+                              type: job.type,
+                              salary: job.salary,
+                           }}
+                        />
                         <button className="inline-flex w-full items-center justify-center rounded-full border border-black/10 bg-white/70 px-5 py-3 text-sm font-medium text-neutral-700 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-black/3 hover:text-neutral-900 active:scale-[0.98]">
                            Save role
                         </button>
