@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function CTA() {
   return (
-    <section className="w-full py-24 md:py-32 relative overflow-hidden bg-white">
+    <section id="cta" className="w-full py-24 md:py-32 relative overflow-hidden bg-white">
       {/* Background glows */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-500/10 rounded-full blur-[150px] pointer-events-none mix-blend-darken" />
 
