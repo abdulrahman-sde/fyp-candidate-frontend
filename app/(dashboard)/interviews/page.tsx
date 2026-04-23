@@ -54,11 +54,11 @@ export default function InterviewsPage() {
 
               <div>
                 <div className="flex justify-between items-start mb-6">
-                  <div className="w-12 h-12 rounded-full border border-white/10 bg-black/5 dark:bg-white/5 text-foreground flex items-center justify-center font-medium shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] text-lg">
+                  <div className="w-12 h-12 rounded-full border border-black/8 dark:border-white/10 bg-black/3 dark:bg-white/5 text-foreground flex items-center justify-center font-medium shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] text-lg">
                     {int.company[0]}
                   </div>
                   <span
-                    className={`px-3 py-1.5 text-[10px] font-semibold rounded-full uppercase ${int.status === "UPCOMING" ? "bg-white text-black" : "bg-white/[0.05] text-muted-foreground border border-white/10"}`}
+                    className={`px-3 py-1.5 text-[10px] font-semibold rounded-full uppercase ${int.status === "UPCOMING" ? "bg-foreground text-background" : "bg-black/3 dark:bg-white/5 text-muted-foreground border border-black/8 dark:border-white/10"}`}
                   >
                     {int.status}
                   </span>
@@ -79,7 +79,7 @@ export default function InterviewsPage() {
                   <span className="text-muted-foreground text-[12px]">{int.time}</span>
                 </div>
                 <button
-                  className={`px-4 py-2 rounded-full text-[12px] font-medium transition-all ${int.status === "UPCOMING" ? "bg-white text-black hover:bg-neutral-200 active:scale-95 shadow-[0_0_15px_rgba(255,255,255,0.1)]" : "bg-black/5 dark:bg-white/5 border border-white/10 text-foreground hover:bg-black/10 dark:bg-white/10 active:scale-95"}`}
+                  className={`px-4 py-2 rounded-full text-[12px] font-medium transition-all ${int.status === "UPCOMING" ? "bg-foreground text-background hover:opacity-90 active:scale-95 shadow-[0_0_15px_rgba(0,0,0,0.08)] dark:shadow-[0_0_15px_rgba(255,255,255,0.1)]" : "bg-black/3 dark:bg-white/5 border border-black/8 dark:border-white/10 text-foreground hover:bg-black/5 dark:hover:bg-white/10 active:scale-95"}`}
                 >
                   Join Session
                 </button>

@@ -66,7 +66,7 @@ export default function CandidateDashboard() {
                 <div className="absolute top-0 right-0 -mr-8 -mt-8 w-24 h-24 rounded-full bg-emerald-500/0 blur-2xl group-hover:bg-emerald-500/10 transition-colors duration-700 pointer-events-none" />
 
                 <div className="relative z-10">
-                  <div className="flex items-start justify-between mb-8">
+                  <div className="flex items-start justify-between mb-4">
                     {/* Nested Circular Wrapper for Avatar */}
                     <div className="w-12 h-12 rounded-full border border-black/[0.05] dark:border-white/[0.05] bg-black/5 dark:bg-white/5 text-foreground flex items-center justify-center font-medium shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] text-lg">
                       {app.company[0]}
@@ -89,9 +89,9 @@ export default function CandidateDashboard() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-5 border-t border-black/[0.05] dark:border-white/[0.05] mt-4 relative z-10">
+                <div className="flex items-center justify-between pt-4 border-t border-black/[0.05] dark:border-white/[0.05] mt-4 relative z-10">
                   <span
-                    className={`text-[13px] tracking-wide ${app.isActive ? "text-emerald-400 font-medium" : "text-muted-foreground"}`}
+                    className={`text-[13px] tracking-wide ${app.isActive ? "text-emerald-700 dark:text-emerald-400 font-medium" : "text-muted-foreground"}`}
                   >
                     {app.score}
                   </span>
@@ -119,7 +119,7 @@ export default function CandidateDashboard() {
                 85%
               </span>
               <div>
-                <span className="text-xs text-emerald-400/80 font-light mt-4 tracking-wide bg-emerald-400/[0.05] py-1 px-2 rounded-md inline-block">
+                <span className="text-xs text-emerald-700 dark:text-emerald-400/80 font-light mt-4 tracking-wide bg-emerald-400/5 py-1 px-2 rounded-md inline-block">
                   Nearly complete
                 </span>
               </div>
@@ -138,7 +138,7 @@ export default function CandidateDashboard() {
                 1
               </span>
               <div>
-                <span className="text-xs text-emerald-400/80 font-light mt-4 tracking-wide bg-emerald-400/[0.05] py-1 px-2 rounded-md inline-block">
+                <span className="text-xs text-emerald-700 dark:text-emerald-400/80 font-light mt-4 tracking-wide bg-emerald-400/5 py-1 px-2 rounded-md inline-block">
                   Awaiting connection
                 </span>
               </div>
@@ -158,7 +158,7 @@ export default function CandidateDashboard() {
                 connecting to your session.
               </p>
             </div>
-            <button className="relative z-10 px-6 py-3.5 rounded-[1.25rem] bg-black/5 dark:bg-white/5 border border-black/[0.05] dark:border-white/[0.05] text-foreground font-medium hover:bg-black/10 dark:bg-white/10 active:scale-[0.98] transition-all shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] text-sm">
+            <button className="relative z-10 px-6 py-3.5 rounded-[1.25rem] bg-black/5 dark:bg-white/5 border border-black/[0.05] dark:border-white/[0.05] text-foreground font-medium hover:bg-black/10 dark:hover:bg-white/10 active:scale-[0.98] transition-all shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] text-sm">
               Run System Test
             </button>
           </div>
