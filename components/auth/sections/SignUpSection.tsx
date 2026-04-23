@@ -75,6 +75,16 @@ export function SignUpSection() {
         <div className="pt-2">
           <AuthPrimaryButton>Create Account</AuthPrimaryButton>
         </div>
+
+        <div className="pt-1 text-center text-[13px] text-neutral-600">
+          Already created your account?{" "}
+          <Link
+            href="/auth/onboarding"
+            className="font-semibold text-neutral-800 transition-colors hover:text-neutral-900"
+          >
+            Continue to onboarding
+          </Link>
+        </div>
       </form>
     </AuthShell>
   );

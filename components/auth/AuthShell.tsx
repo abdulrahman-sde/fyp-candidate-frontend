@@ -9,13 +9,19 @@ export function AuthShell({
   sideTitle,
   sideDescription,
   sidePoints,
+  alignTop = false,
+  stickyAside = false,
 }: AuthShellProps) {
   return (
     <section className="relative min-h-[100dvh] overflow-hidden bg-white">
       <div className="pointer-events-none absolute -top-28 right-0 h-[28rem] w-[28rem] rounded-full bg-emerald-500/10 blur-[110px]" />
       <div className="pointer-events-none absolute bottom-0 left-0 h-[24rem] w-[24rem] rounded-full bg-teal-500/10 blur-[100px]" />
 
-      <div className="relative mx-auto grid min-h-[100dvh] w-full max-w-[1240px] grid-cols-1 items-center gap-8 px-4 py-8 md:px-6 md:py-12 lg:grid-cols-[1.08fr_0.92fr]">
+      <div
+        className={`relative mx-auto grid w-full max-w-[1240px] grid-cols-1 gap-8 px-4 py-8 md:px-6 md:py-12 lg:grid-cols-[1.08fr_0.92fr] ${
+          alignTop ? "items-start" : "min-h-[100dvh] items-center"
+        }`}
+      >
         <div className="order-2 lg:order-1">
           <div className="rounded-[2rem] border border-black/[0.05] bg-black/[0.02] p-1 ring-1 ring-black/[0.02] backdrop-blur-xl">
             <div className="rounded-[calc(2rem-0.25rem)] border border-white/70 bg-white/85 p-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.8)] md:p-8">
@@ -42,7 +48,9 @@ export function AuthShell({
           </div>
         </div>
 
-        <aside className="order-1 lg:order-2">
+        <aside
+          className={`order-1 lg:order-2 ${stickyAside ? "lg:sticky lg:top-8" : ""}`}
+        >
           <div className="rounded-[2rem] border border-black/[0.05] bg-black/[0.02] p-1 ring-1 ring-black/[0.02]">
             <div className="rounded-[calc(2rem-0.25rem)] bg-gradient-to-b from-white/75 to-white/45 p-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)] md:p-8">
               <div className="mb-8 w-fit rounded-full border border-black/10 bg-white/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-700">

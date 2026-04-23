@@ -9,6 +9,8 @@ export interface AuthShellProps {
   sideTitle: string;
   sideDescription: string;
   sidePoints: string[];
+  alignTop?: boolean;
+  stickyAside?: boolean;
 }
 
 export interface AuthFieldProps {
