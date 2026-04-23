@@ -1,8 +1,5 @@
-"use client";
-
 import Link from "next/link";
-import { useTheme } from "next-themes";
-import { useEffect } from "react";
+import { LandingHeader } from "@/components/landing/candidate/LandingHeader";
 import {
   Search,
   MapPin,
@@ -13,12 +10,6 @@ import {
 } from "lucide-react";
 
 export default function JobsPage() {
-  const { setTheme } = useTheme();
-
-  useEffect(() => {
-    setTheme("light");
-    return () => setTheme("dark");
-  }, [setTheme]);
   const jobs = [
     {
       id: "1",
@@ -67,8 +58,9 @@ export default function JobsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#fafafa] w-full mt-[-64px] absolute inset-0 z-50 overflow-y-auto">
-      <div className="max-w-[1240px] mx-auto px-6 py-12 space-y-10 mt-16">
+    <div className="min-h-[100dvh] bg-[#fafafa] w-full">
+      <LandingHeader />
+      <div className="max-w-[1240px] mx-auto px-6 py-12 space-y-10">
         {/* Header Section */}
         <div className="space-y-3">
           <p className="text-emerald-600 text-xs font-bold tracking-widest uppercase">
@@ -83,21 +75,6 @@ export default function JobsPage() {
           </p>
         </div>
 
-        {/* FILTER TABS */}
-        <div className="flex flex-wrap items-center gap-2 p-1 rounded-full bg-black/[0.02] border border-black/[0.05] ring-1 ring-black/[0.02] backdrop-blur-xl w-fit relative z-20">
-          {["All Jobs", "Recommended matches", "Saved roles"].map((tab, i) => (
-            <button
-              key={tab}
-              className={`px-4 py-1.5 rounded-full text-[13px] font-medium transition-all ${
-                i === 0
-                  ? "bg-black/10 text-neutral-900 shadow-[0_1px_2px_rgba(0,0,0,0.5)]"
-                  : "text-neutral-500 hover:text-neutral-800 hover:bg-black/5"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
 
         {/* Search Bar - Doppelrand Core Style */}
         <div className="flex flex-col md:flex-row gap-2 p-1.5 rounded-[1.5rem] bg-black/[0.02] border border-black/[0.05] ring-1 ring-black/[0.02] backdrop-blur-xl relative z-20">
@@ -186,13 +163,6 @@ export default function JobsPage() {
 
             <div className="space-y-4 pt-6 border-t border-black/5">
               <h4 className="text-[13px] font-medium text-neutral-700 flex items-center justify-between">
-                Salary Range{" "}
-                <ChevronUp className="w-4 h-4 text-neutral-500 rotate-180" />
-              </h4>
-            </div>
-
-            <div className="space-y-4 pt-6 border-t border-black/5">
-              <h4 className="text-[13px] font-medium text-neutral-700 flex items-center justify-between">
                 Experience Level{" "}
                 <ChevronUp className="w-4 h-4 text-neutral-500" />
               </h4>
@@ -227,24 +197,24 @@ export default function JobsPage() {
 
                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4 relative z-10">
                         <div>
-                          <h3 className="text-xl md:text-2xl font-medium text-neutral-900 mb-2 tracking-tight group-hover:text-emerald-50 transition-colors">
+                          <h3 className="text-xl md:text-2xl font-medium text-neutral-900 mb-2 tracking-tight">
                             {job.title}
                           </h3>
                           <p className="text-[15px] text-neutral-500 font-light">
                             {job.company}
                           </p>
                         </div>
-                        <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/5 border border-black/10 text-neutral-900 group-hover:bg-black/10 group-hover:border-black/20 transition-all text-[12px] font-medium shrink-0">
+                        <button className="flex items-center gap-2 px-4 py-2 rounded-full cursor-pointer bg-black/5 border border-black/10 text-neutral-900 group-hover:bg-black/10 group-hover:border-black/20 transition-all text-[12px] font-medium shrink-0">
                           View{" "}
                           <ArrowRight className="w-3.5 h-3.5 text-neutral-500 group-hover:text-neutral-700 transition-colors" />
                         </button>
                       </div>
 
-                      <p className="text-[14.5px] text-neutral-600 font-light leading-relaxed max-w-3xl mb-8 relative z-10">
+                      <p className="text-[14.5px] text-neutral-600 font-light leading-relaxed max-w-3xl mb-4 relative z-10">
                         {job.description}
                       </p>
 
-                      <div className="flex flex-wrap items-center gap-6 text-[13px] text-neutral-500 mb-8 relative z-10 font-medium">
+                      <div className="flex flex-wrap items-center gap-6 text-[13px] text-neutral-500 mb-4 relative z-10 font-medium">
                         <span className="flex items-center gap-2">
                           <MapPin className="w-4 h-4" /> {job.location}
                         </span>

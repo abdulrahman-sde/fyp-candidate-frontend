@@ -9,7 +9,7 @@ const navLinks = [
 export function LandingHeader() {
   return (
     <header className="sticky top-0 z-40 px-4 pt-4 md:px-6 md:pt-6">
-      <div className="mx-auto max-w-[1200px] p-1 rounded-[1.75rem] bg-black/[0.02] border border-black/[0.05] ring-1 ring-black/[0.03] shadow-[0_16px_40px_-28px_rgba(0,0,0,0.4)] backdrop-blur-xl">
+      <div className="mx-auto max-w-[1000px] p-1 rounded-[1.75rem] bg-black/[0.02] border border-black/[0.05] ring-1 ring-black/[0.03] shadow-[0_16px_40px_-28px_rgba(0,0,0,0.4)] backdrop-blur-xl">
         <div className="h-14 rounded-[calc(1.75rem-0.25rem)] bg-white/80 border border-white/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.75)] px-3 sm:px-4 md:px-5 flex items-center justify-between">
           <Link
             href="/"
@@ -23,24 +23,12 @@ export function LandingHeader() {
             </span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-1">
-            {navLinks.map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="rounded-full px-4 py-2 text-[13px] font-medium text-neutral-600 hover:text-neutral-900 hover:bg-black/[0.03] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-
           <div className="flex items-center gap-2">
             <Link
-              href="/dashboard"
-              className="hidden sm:inline-flex rounded-full px-4 py-2 text-[12px] font-medium border border-black/10 text-neutral-700 hover:bg-black/5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
+              href="/jobs"
+              className="hidden sm:inline-flex rounded-full px-4 py-2.5 text-[12px] font-medium border border-black/10 text-neutral-700 hover:bg-black/5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
             >
-              Sign In
+              Open Roles
             </Link>
             <Link
               href="/dashboard"

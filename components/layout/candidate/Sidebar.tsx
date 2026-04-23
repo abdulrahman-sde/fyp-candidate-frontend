@@ -13,11 +13,6 @@ export function Sidebar() {
       icon: "M3 3H10V10H3V3ZM14 3H21V10H14V3ZM3 14H10V21H3V14ZM14 14H21V21H14V14Z",
     },
     {
-      label: "Jobs",
-      href: "/jobs",
-      icon: "M4 6H20V20H4V6ZM4 2H20C21.1 2 22 2.9 22 4V20C22 21.1 21.1 22 20 22H4C2.9 22 2 21.1 2 20V4C2 2.9 2.9 2 4 2ZM20 6V4H4V6H20Z",
-    },
-    {
       label: "Applications",
       href: "/applications",
       icon: "M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z",
