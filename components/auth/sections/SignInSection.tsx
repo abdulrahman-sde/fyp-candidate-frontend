@@ -1,10 +1,15 @@
-import Link from "next/link";
+"use client";
 
+import Link from "next/link";
+import { useActionState } from "react";
 import { AuthField } from "@/components/auth/AuthField";
 import { AuthPrimaryButton } from "@/components/auth/AuthPrimaryButton";
 import { AuthShell } from "@/components/auth/AuthShell";
+import { signIn } from "@/app/actions/auth";
 
 export function SignInSection() {
+  const [state, action, pending] = useActionState(signIn, undefined);
+
   return (
     <AuthShell
       eyebrow="Welcome Back"
@@ -29,14 +34,20 @@ export function SignInSection() {
         </p>
       }
     >
-      <form className="space-y-4" action="#" method="post">
+      <form className="space-y-4" action={action}>
+        {state?.message && (
+          <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[13px] text-red-700">
+            {state.message}
+          </p>
+        )}
+
         <AuthField
           id="email"
           label="Email address"
           type="email"
           placeholder="name@domain.com"
           required
-          helperText="Use the email associated with your candidate profile."
+          error={state?.errors?.email?.[0]}
         />
         <AuthField
           id="password"
@@ -44,6 +55,7 @@ export function SignInSection() {
           type="password"
           placeholder="Enter your password"
           required
+          error={state?.errors?.password?.[0]}
         />
 
         <div className="flex items-center justify-between gap-3 pt-1">
@@ -64,7 +76,9 @@ export function SignInSection() {
         </div>
 
         <div className="pt-2">
-          <AuthPrimaryButton>Sign In</AuthPrimaryButton>
+          <AuthPrimaryButton disabled={pending}>
+            {pending ? "Signing in…" : "Sign In"}
+          </AuthPrimaryButton>
         </div>
       </form>
     </AuthShell>

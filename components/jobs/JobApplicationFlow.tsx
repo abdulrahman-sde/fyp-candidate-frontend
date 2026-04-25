@@ -1,98 +1,79 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowRight, Check, FileText, Loader2, ShieldCheck, Sparkle, X } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  FileText,
+  Loader2,
+  LogIn,
+  ShieldCheck,
+  Sparkle,
+  X,
+} from "lucide-react";
+import Link from "next/link";
+import { submitApplication } from "@/app/actions/applications";
+import type { ApplicationActionState } from "@/types/job";
 
 type JobApplicationFlowProps = {
   job: {
+    id: string;
+    slug: string;
     title: string;
     company: string;
     location: string;
     type: string;
     salary: string;
+    screeningQuestions: string[];
   };
+  isLoggedIn: boolean;
+  alreadyApplied: boolean;
+  existingStatus: string | null;
 };
 
-const steps = ["Profile", "Questions", "Review"] as const;
+const steps = ["Resume", "Questions", "Review"] as const;
 
-const uploadedResumes = [
-  {
-    id: "resume-1",
-    name: "Ava Johnson - Product Engineer",
-    fileName: "ava-johnson-product-engineer.pdf",
-    size: "286 KB",
-    updatedAt: "Updated 2 days ago",
-    tag: "Primary resume",
-  },
-  {
-    id: "resume-2",
-    name: "Ava Johnson - Frontend Portfolio",
-    fileName: "ava-johnson-frontend-portfolio.pdf",
-    size: "412 KB",
-    updatedAt: "Updated 9 days ago",
-    tag: "Tailored for frontend roles",
-  },
-  {
-    id: "resume-3",
-    name: "Ava Johnson - ATS Version",
-    fileName: "ava-johnson-ats-optimized.pdf",
-    size: "198 KB",
-    updatedAt: "Updated 1 month ago",
-    tag: "Lean resume version",
-  },
-];
-
-const recruiterQuestions = [
-  {
-    id: "availability",
-    label: "Availability",
-    helper: "When can you start if selected?",
-    placeholder: "For example, I can start within 2 weeks.",
-    type: "text" as const,
-  },
-  {
-    id: "expertise",
-    label: "Specific expertise",
-    helper: "Mention the skill you are strongest in for this role.",
-    placeholder: "For example, I have deep experience with React performance and design systems.",
-    type: "textarea" as const,
-  },
-  {
-    id: "portfolio",
-    label: "Portfolio or work sample link",
-    helper: "Add a link the recruiter can review quickly.",
-    placeholder: "https://",
-    type: "text" as const,
-  },
-  {
-    id: "workMode",
-    label: "Work mode preference",
-    helper: "Tell the recruiter whether you prefer remote, hybrid, or onsite work.",
-    placeholder: "Remote, hybrid, or onsite with context.",
-    type: "text" as const,
-  },
-];
-
-export function JobApplicationFlow({ job }: JobApplicationFlowProps) {
+export function JobApplicationFlow({
+  job,
+  isLoggedIn,
+  alreadyApplied,
+  existingStatus,
+}: JobApplicationFlowProps) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState(1);
-  const [submitted, setSubmitted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedResumeId, setSelectedResumeId] = useState(uploadedResumes[0].id);
-  const [answers, setAnswers] = useState({
-    availability: "I can start within 2 weeks.",
-    expertise:
-      "I have strong experience building performance-focused React interfaces and reusable design systems.",
-    portfolio: "https://portfolio.aura.dev",
-    workMode: "Remote or hybrid works well for me, depending on the team setup.",
-  });
+
+  // Resume selection — for now uses a single resume (the one from profile)
+  // We show it as the only option; the UI still renders the selection step for consistency
+  const resumeOption = {
+    id: "profile-resume",
+    name: "My Resume",
+    fileName: "Uploaded at onboarding",
+    tag: "Profile resume",
+  };
+
+  // Answers keyed by question index
+  const [answers, setAnswers] = useState<Record<number, string>>(() =>
+    Object.fromEntries(job.screeningQuestions.map((_, i) => [i, ""]))
+  );
+
+  const [state, formAction, pending] = useActionState<ApplicationActionState, FormData>(
+    submitApplication,
+    undefined
+  );
+
+  const submitted = state?.success === true;
 
   const progress = useMemo(() => `${Math.round((step / steps.length) * 100)}%`, [step]);
 
+  const hasQuestions = job.screeningQuestions.length > 0;
+  const effectiveSteps = hasQuestions ? steps : (["Resume", "Review"] as const);
+  const totalSteps = effectiveSteps.length;
+
+  const isReady = answers && Object.values(answers).every((a) => !a || a.trim().length >= 0);
+
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
@@ -101,7 +82,6 @@ export function JobApplicationFlow({ job }: JobApplicationFlowProps) {
       document.body.style.overflow = "";
       return;
     }
-
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "";
@@ -110,31 +90,57 @@ export function JobApplicationFlow({ job }: JobApplicationFlowProps) {
 
   useEffect(() => {
     if (open) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStep(1);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSubmitted(false);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSelectedResumeId(uploadedResumes[0].id);
+      setAnswers(Object.fromEntries(job.screeningQuestions.map((_, i) => [i, ""])));
     }
-  }, [open, uploadedResumes]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
-  const selectedResume = uploadedResumes.find((resume) => resume.id === selectedResumeId) ?? uploadedResumes[0];
+  // Build screening answers payload for form submission
+  const buildScreeningAnswers = () =>
+    job.screeningQuestions.map((q, i) => ({
+      question: q,
+      answer: answers[i] ?? "",
+    }));
 
-  const isReady =
-    Boolean(selectedResumeId) &&
-    answers.availability.trim().length > 6 &&
-    answers.expertise.trim().length > 20 &&
-    answers.portfolio.trim().length > 6 &&
-    answers.workMode.trim().length > 6;
-
-  const submitApplication = () => {
-    setIsSubmitting(true);
-    window.setTimeout(() => {
-      setIsSubmitting(false);
-      setSubmitted(true);
-    }, 1400);
+  // Map display step → actual step considering no-questions mode
+  const getActualStep = (displayStep: number) => {
+    if (!hasQuestions && displayStep === 2) return 3; // skip questions step
+    return displayStep;
   };
+
+  if (alreadyApplied) {
+    return (
+      <div className="rounded-3xl border border-emerald-500/20 bg-emerald-50 p-4 text-sm text-emerald-700">
+        <div className="flex items-center gap-2 font-medium">
+          <Check className="h-4 w-4" />
+          Applied — {existingStatus?.replace(/_/g, " ") ?? "Under review"}
+        </div>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <div className="space-y-3">
+        <Link
+          href={`/auth/sign-in?redirect=/jobs/${encodeURIComponent(job.slug)}`}
+          className="group inline-flex w-full items-center justify-between rounded-full bg-emerald-500 px-5 py-3 text-sm font-medium text-white transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-emerald-600 active:scale-[0.98]"
+        >
+          Sign in to Apply
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/20">
+            <LogIn className="h-3.5 w-3.5" />
+          </span>
+        </Link>
+        <p className="text-center text-xs text-neutral-400">
+          No account?{" "}
+          <Link href="/auth/sign-up" className="text-emerald-600 hover:underline">
+            Create one free
+          </Link>
+        </p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -156,327 +162,322 @@ export function JobApplicationFlow({ job }: JobApplicationFlowProps) {
           </div>
           <div className="space-y-1">
             <p className="font-medium text-neutral-900">Estimated completion time</p>
-            <p className="text-neutral-500">Under 2 minutes when profile and resume are ready.</p>
+            <p className="text-neutral-500">
+              Under {hasQuestions ? "3" : "1"} minute{hasQuestions ? "s" : ""} when profile is ready.
+            </p>
           </div>
         </div>
       </div>
 
-      {mounted && open ? createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 md:p-8">
-          <div
-            aria-label="Close application flow"
-            onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-neutral-950/70 backdrop-blur-sm"
-          />
+      {mounted && open
+        ? createPortal(
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 md:p-8">
+              <div
+                aria-label="Close application flow"
+                onClick={() => !submitted && setOpen(false)}
+                className="absolute inset-0 bg-neutral-950/70 backdrop-blur-sm"
+              />
 
-          <section className="relative z-10 w-full max-w-4xl overflow-hidden rounded-[2.5rem] border border-black/5 bg-black/2 p-1 shadow-[0_24px_80px_-30px_rgba(0,0,0,0.24)]">
-            <div className="flex max-h-[calc(100dvh-4rem)] flex-col overflow-hidden rounded-[calc(2.5rem-0.25rem)] bg-linear-to-b from-white/95 to-white/85 shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)]">
-              <div className="shrink-0 p-5 sm:p-6 md:p-8">
-                <div className="flex items-start justify-between gap-4 border-b border-black/6 pb-5">
-                  <div>
-                    <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700">
-                      Application flow
-                    </div>
-                    <h2 className="mt-4 text-3xl font-semibold tracking-tight text-neutral-900 md:text-4xl">
-                      Apply for {job.title}
-                    </h2>
-                    <p className="mt-2 max-w-2xl text-sm text-neutral-500 md:text-[15px]">
-                      Review your profile, answer the role questions, and submit a polished application without leaving the page.
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setOpen(false)}
-                    className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white/80 text-neutral-600 transition-all hover:bg-black/4 hover:text-neutral-900 active:scale-[0.98]"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-
-                <div className="mt-6 flex flex-wrap items-center gap-3">
-                  {steps.map((label, index) => {
-                    const active = step === index + 1;
-                    const done = step > index + 1;
-
-                    return (
-                      <div key={label} className="flex items-center gap-3">
-                        <div
-                          className={`flex h-10 w-10 items-center justify-center rounded-full border text-[12px] font-semibold transition-all ${
-                            done
-                              ? "border-emerald-500/25 bg-emerald-50 text-emerald-700"
-                              : active
-                                ? "border-emerald-500/20 bg-foreground text-background"
-                                : "border-black/10 bg-black/3 text-neutral-500"
-                          }`}
-                        >
-                          {done ? <Check className="h-4 w-4" /> : index + 1}
+              <section className="relative z-10 w-full max-w-4xl overflow-hidden rounded-[2.5rem] border border-black/5 bg-black/2 p-1 shadow-[0_24px_80px_-30px_rgba(0,0,0,0.24)]">
+                <div className="flex max-h-[calc(100dvh-4rem)] flex-col overflow-hidden rounded-[calc(2.5rem-0.25rem)] bg-linear-to-b from-white/95 to-white/85 shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)]">
+                  {/* Header */}
+                  <div className="shrink-0 p-5 sm:p-6 md:p-8">
+                    <div className="flex items-start justify-between gap-4 border-b border-black/6 pb-5">
+                      <div>
+                        <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700">
+                          Application flow
                         </div>
-                        <div className="hidden sm:block">
-                          <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">Step {index + 1}</p>
-                          <p className="text-sm font-medium text-neutral-900">{label}</p>
-                        </div>
-                        {index < steps.length - 1 ? (
-                          <div className="hidden sm:block h-px w-10 bg-black/10" />
-                        ) : null}
+                        <h2 className="mt-4 text-3xl font-semibold tracking-tight text-neutral-900 md:text-4xl">
+                          Apply for {job.title}
+                        </h2>
+                        <p className="mt-2 max-w-2xl text-sm text-neutral-500 md:text-[15px]">
+                          Review your profile, answer the role questions, and submit your application.
+                        </p>
                       </div>
-                    );
-                  })}
-                </div>
-
-                <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-black/5">
-                  <div className="h-full rounded-full bg-emerald-500 transition-[width] duration-500" style={{ width: progress }} />
-                </div>
-
-              </div>
-
-              <div className="flex-1 overflow-y-auto px-5 pb-5 sm:px-6 sm:pb-6 md:px-8 md:pb-8">
-                {!submitted ? (
-                  <div className="space-y-8 pt-3">
-                    {step === 1 ? (
-                      <section className="space-y-5">
-                        <div className="rounded-[1.75rem] border border-black/5 bg-black/2 p-4">
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
-                                Select resume
-                              </p>
-                              <h3 className="mt-2 text-sm font-medium text-neutral-900">
-                                Pick one file to submit with this application.
-                              </h3>
-                            </div>
-                            <div className="rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700">
-                              {uploadedResumes.length} uploaded
-                            </div>
-                          </div>
-
-                          <div className="mt-4 space-y-3">
-                            {uploadedResumes.map((resume) => {
-                              const active = resume.id === selectedResumeId;
-
-                              return (
-                                <button
-                                  key={resume.id}
-                                  type="button"
-                                  onClick={() => setSelectedResumeId(resume.id)}
-                                  className={`flex w-full items-start gap-4 rounded-3xl border p-4 text-left transition-all active:scale-[0.99] ${
-                                    active
-                                      ? "border-emerald-500/25 bg-emerald-50 text-neutral-900 shadow-[0_8px_30px_-18px_rgba(16,185,129,0.25)]"
-                                      : "border-black/10 bg-background/70 text-neutral-700 hover:border-black/15 hover:bg-black/3"
-                                  }`}
-                                >
-                                  <div
-                                    className={`mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border ${
-                                      active
-                                        ? "border-emerald-500/20 bg-emerald-500 text-white"
-                                        : "border-black/10 bg-black/5 text-neutral-500"
-                                    }`}
-                                  >
-                                    <FileText className="h-4 w-4" />
-                                  </div>
-
-                                  <div className="min-w-0 flex-1">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                      <p className="font-medium text-neutral-900">{resume.name}</p>
-                                      <span className="rounded-full bg-black/5 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
-                                        {resume.tag}
-                                      </span>
-                                    </div>
-                                    <p className="mt-1 truncate text-sm text-neutral-500">{resume.fileName}</p>
-                                    <p className="mt-1 text-xs text-neutral-400">
-                                      {resume.size} · {resume.updatedAt}
-                                    </p>
-                                  </div>
-
-                                  <div className={`mt-1 h-5 w-5 rounded-full border ${active ? "border-emerald-500 bg-emerald-500" : "border-black/15"}`}>
-                                    {active ? <Check className="h-4 w-4 text-white" /> : null}
-                                  </div>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </section>
-                    ) : null}
-
-                    {step === 2 ? (
-                      <section className="space-y-5">
-                        <div className="rounded-3xl border border-black/5 bg-black/2 p-4">
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">Recruiter questions</p>
-                              <h3 className="mt-2 text-sm font-medium text-neutral-900">
-                                Answer the questions the recruiter cares about most.
-                              </h3>
-                            </div>
-                            <span className="rounded-full bg-black/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
-                              {recruiterQuestions.length} questions
-                            </span>
-                          </div>
-
-                          <div className="mt-5 space-y-4">
-                            {recruiterQuestions.map((question) => {
-                              const value = answers[question.id as keyof typeof answers];
-
-                              return (
-                                <div key={question.id} className="space-y-2 rounded-3xl border border-black/5 bg-white/50 p-4">
-                                  <label className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
-                                    {question.label}
-                                  </label>
-                                  <p className="text-sm text-neutral-500">{question.helper}</p>
-
-                                  {question.type === "textarea" ? (
-                                    <textarea
-                                      value={value}
-                                      onChange={(event) =>
-                                        setAnswers((current) => ({
-                                          ...current,
-                                          [question.id]: event.target.value,
-                                        }))
-                                      }
-                                      rows={4}
-                                      placeholder={question.placeholder}
-                                      className="w-full resize-none rounded-2xl border border-black/10 bg-white/80 px-4 py-3 text-[15px] text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-emerald-400"
-                                    />
-                                  ) : (
-                                    <input
-                                      value={value}
-                                      onChange={(event) =>
-                                        setAnswers((current) => ({
-                                          ...current,
-                                          [question.id]: event.target.value,
-                                        }))
-                                      }
-                                      placeholder={question.placeholder}
-                                      className="w-full rounded-2xl border border-black/10 bg-white/80 px-4 py-3 text-[15px] text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-emerald-400"
-                                    />
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </section>
-                    ) : null}
-
-                    {step === 3 ? (
-                      <section className="space-y-5">
-                        <div className="rounded-[1.75rem] border border-black/5 bg-black/2 p-4">
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">Application review</p>
-                          <div className="mt-4 space-y-3 text-sm text-neutral-600">
-                            <div className="flex items-center justify-between gap-4">
-                              <span>Role</span>
-                              <span className="font-medium text-neutral-900">{job.title}</span>
-                            </div>
-                            <div className="flex items-center justify-between gap-4">
-                              <span>Resume</span>
-                              <span className="font-medium text-neutral-900">{selectedResume.name}</span>
-                            </div>
-                            <div className="flex items-center justify-between gap-4">
-                              <span>Portfolio</span>
-                              <span className="truncate font-medium text-neutral-900">{answers.portfolio}</span>
-                            </div>
-                            <div className="flex items-center justify-between gap-4">
-                              <span>Availability</span>
-                              <span className="font-medium text-neutral-900">{answers.availability}</span>
-                            </div>
-                            <div className="flex items-center justify-between gap-4">
-                              <span>Expertise</span>
-                              <span className="max-w-[55%] truncate font-medium text-neutral-900">{answers.expertise}</span>
-                            </div>
-                            <div className="flex items-center justify-between gap-4">
-                              <span>Work mode</span>
-                              <span className="font-medium text-neutral-900">{answers.workMode}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <label className="flex items-start gap-3 rounded-[1.75rem] border border-black/5 bg-black/2 p-4 text-sm text-neutral-600">
-                          <input type="checkbox" defaultChecked className="mt-1 h-4 w-4 rounded border-black/20 text-emerald-500 focus:ring-emerald-500" />
-                          <span>
-                            I confirm the information is accurate and I agree to share it with the hiring team.
-                          </span>
-                        </label>
-                      </section>
-                    ) : null}
-
-                    <div className="flex flex-col-reverse gap-3 border-t border-black/6 pt-5 sm:flex-row sm:items-center sm:justify-between">
                       <button
                         type="button"
                         onClick={() => setOpen(false)}
-                        className="inline-flex items-center justify-center rounded-full border border-black/10 bg-white/70 px-5 py-3 text-sm font-medium text-neutral-700 transition-all hover:bg-black/4 hover:text-neutral-900 active:scale-[0.98]"
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white/80 text-neutral-600 transition-all hover:bg-black/4 hover:text-neutral-900 active:scale-[0.98]"
                       >
-                        Save and close
+                        <X className="h-4 w-4" />
                       </button>
+                    </div>
 
-                      <div className="flex flex-col gap-3 sm:flex-row">
-                        <button
-                          type="button"
-                          onClick={() => setStep((current) => Math.max(1, current - 1))}
-                          disabled={step === 1}
-                          className="inline-flex items-center justify-center rounded-full border border-black/10 bg-white/70 px-5 py-3 text-sm font-medium text-neutral-700 transition-all disabled:cursor-not-allowed disabled:opacity-40 hover:bg-black/4 hover:text-neutral-900 active:scale-[0.98]"
-                        >
-                          Back
-                        </button>
+                    {!submitted && (
+                      <>
+                        <div className="mt-6 flex flex-wrap items-center gap-3">
+                          {effectiveSteps.map((label, index) => {
+                            const active = step === index + 1;
+                            const done = step > index + 1;
+                            return (
+                              <div key={label} className="flex items-center gap-3">
+                                <div
+                                  className={`flex h-10 w-10 items-center justify-center rounded-full border text-[12px] font-semibold transition-all ${
+                                    done
+                                      ? "border-emerald-500/25 bg-emerald-50 text-emerald-700"
+                                      : active
+                                        ? "border-emerald-500/20 bg-foreground text-background"
+                                        : "border-black/10 bg-black/3 text-neutral-500"
+                                  }`}
+                                >
+                                  {done ? <Check className="h-4 w-4" /> : index + 1}
+                                </div>
+                                <div className="hidden sm:block">
+                                  <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">
+                                    Step {index + 1}
+                                  </p>
+                                  <p className="text-sm font-medium text-neutral-900">{label}</p>
+                                </div>
+                                {index < effectiveSteps.length - 1 && (
+                                  <div className="hidden sm:block h-px w-10 bg-black/10" />
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
 
-                        {step < steps.length ? (
-                          <button
-                            type="button"
-                            onClick={() => setStep((current) => Math.min(steps.length, current + 1))}
-                            className="inline-flex items-center justify-center rounded-full bg-foreground px-5 py-3 text-sm font-medium text-background transition-all hover:opacity-90 active:scale-[0.98]"
-                          >
-                            Continue
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={submitApplication}
-                            disabled={!isReady || isSubmitting}
-                            className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 py-3 text-sm font-medium text-white transition-all hover:bg-emerald-600 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkle className="h-4 w-4" />}
-                            {isSubmitting ? "Submitting" : "Submit application"}
-                          </button>
+                        <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-black/5">
+                          <div
+                            className="h-full rounded-full bg-emerald-500 transition-[width] duration-500"
+                            style={{ width: progress }}
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Body */}
+                  <div className="flex-1 overflow-y-auto px-5 pb-5 sm:px-6 sm:pb-6 md:px-8 md:pb-8">
+                    {state?.message && !submitted && (
+                      <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                        {state.message}
+                      </div>
+                    )}
+
+                    {!submitted ? (
+                      <form
+                        action={(formData) => {
+                          formData.set("job_id", job.id);
+                          formData.set(
+                            "screening_answers",
+                            JSON.stringify(buildScreeningAnswers())
+                          );
+                          formAction(formData);
+                        }}
+                        className="space-y-8 pt-3"
+                      >
+                        {/* Step 1: Resume */}
+                        {step === 1 && (
+                          <section className="space-y-5">
+                            <div className="rounded-[1.75rem] border border-black/5 bg-black/2 p-4">
+                              <div className="flex items-start justify-between gap-4">
+                                <div>
+                                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
+                                    Your Resume
+                                  </p>
+                                  <h3 className="mt-2 text-sm font-medium text-neutral-900">
+                                    Your profile resume will be submitted with this application.
+                                  </h3>
+                                </div>
+                              </div>
+
+                              <div className="mt-4">
+                                <div className="flex w-full items-start gap-4 rounded-3xl border border-emerald-500/25 bg-emerald-50 p-4 text-left shadow-[0_8px_30px_-18px_rgba(16,185,129,0.25)]">
+                                  <div className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500 text-white">
+                                    <FileText className="h-4 w-4" />
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <p className="font-medium text-neutral-900">{resumeOption.name}</p>
+                                      <span className="rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-700">
+                                        {resumeOption.tag}
+                                      </span>
+                                    </div>
+                                    <p className="mt-1 text-sm text-neutral-500">{resumeOption.fileName}</p>
+                                  </div>
+                                  <div className="mt-1 h-5 w-5 rounded-full border border-emerald-500 bg-emerald-500">
+                                    <Check className="h-4 w-4 text-white" />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </section>
                         )}
+
+                        {/* Step 2: Screening Questions (only if hasQuestions) */}
+                        {hasQuestions && step === 2 && (
+                          <section className="space-y-5">
+                            <div className="rounded-3xl border border-black/5 bg-black/2 p-4">
+                              <div className="flex items-start justify-between gap-4">
+                                <div>
+                                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
+                                    Recruiter questions
+                                  </p>
+                                  <h3 className="mt-2 text-sm font-medium text-neutral-900">
+                                    Answer the questions the recruiter cares about most.
+                                  </h3>
+                                </div>
+                                <span className="rounded-full bg-black/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
+                                  {job.screeningQuestions.length} question{job.screeningQuestions.length !== 1 ? "s" : ""}
+                                </span>
+                              </div>
+
+                              <div className="mt-5 space-y-4">
+                                {job.screeningQuestions.map((question, i) => (
+                                  <div
+                                    key={i}
+                                    className="space-y-2 rounded-3xl border border-black/5 bg-white/50 p-4"
+                                  >
+                                    <label className="block text-[13px] font-medium text-neutral-700">
+                                      {i + 1}. {question}
+                                    </label>
+                                    <textarea
+                                      value={answers[i] ?? ""}
+                                      onChange={(e) =>
+                                        setAnswers((prev) => ({ ...prev, [i]: e.target.value }))
+                                      }
+                                      rows={3}
+                                      placeholder="Your answer…"
+                                      className="w-full resize-none rounded-2xl border border-black/10 bg-white/80 px-4 py-3 text-[15px] text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-emerald-400"
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </section>
+                        )}
+
+                        {/* Review Step */}
+                        {step === totalSteps && (
+                          <section className="space-y-5">
+                            <div className="rounded-[1.75rem] border border-black/5 bg-black/2 p-4">
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
+                                Application review
+                              </p>
+                              <div className="mt-4 space-y-3 text-sm text-neutral-600">
+                                <div className="flex items-center justify-between gap-4">
+                                  <span>Role</span>
+                                  <span className="font-medium text-neutral-900">{job.title}</span>
+                                </div>
+                                <div className="flex items-center justify-between gap-4">
+                                  <span>Company</span>
+                                  <span className="font-medium text-neutral-900">{job.company}</span>
+                                </div>
+                                <div className="flex items-center justify-between gap-4">
+                                  <span>Resume</span>
+                                  <span className="font-medium text-neutral-900">Profile resume</span>
+                                </div>
+                                {hasQuestions && (
+                                  <div className="flex items-center justify-between gap-4">
+                                    <span>Questions answered</span>
+                                    <span className="font-medium text-neutral-900">
+                                      {Object.values(answers).filter((a) => a.trim()).length} /{" "}
+                                      {job.screeningQuestions.length}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            <label className="flex items-start gap-3 rounded-[1.75rem] border border-black/5 bg-black/2 p-4 text-sm text-neutral-600">
+                              <input
+                                type="checkbox"
+                                defaultChecked
+                                className="mt-1 h-4 w-4 rounded border-black/20 text-emerald-500 focus:ring-emerald-500"
+                              />
+                              <span>
+                                I confirm the information is accurate and agree to share it with the
+                                hiring team.
+                              </span>
+                            </label>
+                          </section>
+                        )}
+
+                        {/* Navigation */}
+                        <div className="flex flex-col-reverse gap-3 border-t border-black/6 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                          <button
+                            type="button"
+                            onClick={() => setOpen(false)}
+                            className="inline-flex items-center justify-center rounded-full border border-black/10 bg-white/70 px-5 py-3 text-sm font-medium text-neutral-700 transition-all hover:bg-black/4 hover:text-neutral-900 active:scale-[0.98]"
+                          >
+                            Cancel
+                          </button>
+
+                          <div className="flex flex-col gap-3 sm:flex-row">
+                            <button
+                              type="button"
+                              onClick={() => setStep((s) => Math.max(1, s - 1))}
+                              disabled={step === 1}
+                              className="inline-flex items-center justify-center rounded-full border border-black/10 bg-white/70 px-5 py-3 text-sm font-medium text-neutral-700 transition-all disabled:cursor-not-allowed disabled:opacity-40 hover:bg-black/4 hover:text-neutral-900 active:scale-[0.98]"
+                            >
+                              Back
+                            </button>
+
+                            {step < totalSteps ? (
+                              <button
+                                type="button"
+                                onClick={() => setStep((s) => Math.min(totalSteps, s + 1))}
+                                className="inline-flex items-center justify-center rounded-full bg-foreground px-5 py-3 text-sm font-medium text-background transition-all hover:opacity-90 active:scale-[0.98]"
+                              >
+                                Continue
+                              </button>
+                            ) : (
+                              <button
+                                type="submit"
+                                disabled={!isReady || pending}
+                                className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 py-3 text-sm font-medium text-white transition-all hover:bg-emerald-600 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                {pending ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Sparkle className="h-4 w-4" />
+                                )}
+                                {pending ? "Submitting…" : "Submit application"}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </form>
+                    ) : (
+                      <div className="mt-8 grid min-h-[320px] place-items-center rounded-4xl border border-emerald-500/15 bg-emerald-50/60 p-6 text-center">
+                        <div className="max-w-md space-y-5">
+                          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_12px_40px_-18px_rgba(16,185,129,0.6)]">
+                            <Check className="h-8 w-8" />
+                          </div>
+                          <div className="space-y-2">
+                            <h3 className="text-2xl font-semibold tracking-tight text-neutral-900">
+                              Application submitted
+                            </h3>
+                            <p className="text-sm text-neutral-600 md:text-[15px]">
+                              Your profile has been delivered to {job.company}. Track the status
+                              from your applications dashboard.
+                            </p>
+                          </div>
+                          <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+                            <button
+                              type="button"
+                              onClick={() => setOpen(false)}
+                              className="inline-flex items-center justify-center rounded-full border border-black/10 bg-white/80 px-5 py-3 text-sm font-medium text-neutral-700 transition-all hover:bg-black/4 hover:text-neutral-900 active:scale-[0.98]"
+                            >
+                              Close
+                            </button>
+                            <Link
+                              href="/applications"
+                              className="inline-flex items-center justify-center rounded-full bg-foreground px-5 py-3 text-sm font-medium text-background transition-all hover:opacity-90 active:scale-[0.98]"
+                            >
+                              View applications
+                            </Link>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
-                ) : (
-                  <div className="mt-8 grid min-h-[320px] place-items-center rounded-4xl border border-emerald-500/15 bg-emerald-50/60 p-6 text-center">
-                    <div className="max-w-md space-y-5">
-                      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_12px_40px_-18px_rgba(16,185,129,0.6)]">
-                        <Check className="h-8 w-8" />
-                      </div>
-                      <div className="space-y-2">
-                        <h3 className="text-2xl font-semibold tracking-tight text-neutral-900">Application submitted</h3>
-                        <p className="text-sm text-neutral-600 md:text-[15px]">
-                          Your profile has been delivered to {job.company}. You can track the status from your applications dashboard.
-                        </p>
-                      </div>
-                      <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-                        <button
-                          type="button"
-                          onClick={() => setOpen(false)}
-                          className="inline-flex items-center justify-center rounded-full border border-black/10 bg-white/80 px-5 py-3 text-sm font-medium text-neutral-700 transition-all hover:bg-black/4 hover:text-neutral-900 active:scale-[0.98]"
-                        >
-                          Close
-                        </button>
-                        <button
-                          type="button"
-                          className="inline-flex items-center justify-center rounded-full bg-foreground px-5 py-3 text-sm font-medium text-background transition-all hover:opacity-90 active:scale-[0.98]"
-                        >
-                          View applications
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </section>
-        </div>,
-        document.body
-      ) : null}
+                </div>
+              </section>
+            </div>,
+            document.body
+          )
+        : null}
     </>
   );
 }
