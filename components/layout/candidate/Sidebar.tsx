@@ -67,18 +67,9 @@ export function Sidebar() {
       </nav>
 
       <div className="p-4 mt-auto">
-        <div className="flex justify-between items-center mb-4 px-2">
+        <div className="flex justify-between items-center px-2">
            <span className="text-xs text-muted-foreground font-medium">Theme</span>
            <ThemeToggle />
-        </div>
-        <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-border group transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.05]">
-          <p className="text-xs text-muted-foreground mb-3 group-hover:text-foreground">Match Score Potential</p>
-          <div className="w-full bg-black/5 dark:bg-white/5 rounded-full h-1.5 mb-2 overflow-hidden">
-            <div className="bg-primary h-1.5 rounded-full w-[85%] animate-pulse" />
-          </div>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-            85% Global Visibility
-          </p>
         </div>
       </div>
     </aside>

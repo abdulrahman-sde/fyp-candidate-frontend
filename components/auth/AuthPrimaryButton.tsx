@@ -2,13 +2,15 @@ import type { ReactNode } from "react";
 
 interface AuthPrimaryButtonProps {
   children: ReactNode;
+  disabled?: boolean;
 }
 
-export function AuthPrimaryButton({ children }: AuthPrimaryButtonProps) {
+export function AuthPrimaryButton({ children, disabled }: AuthPrimaryButtonProps) {
   return (
     <button
       type="submit"
-      className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 py-3 text-[13px] font-semibold text-white transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-emerald-600 active:scale-[0.98]"
+      disabled={disabled}
+      className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 py-3 text-[13px] font-semibold text-white transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-emerald-600 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
     >
       {children}
       <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/20 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:-translate-y-[1px]">

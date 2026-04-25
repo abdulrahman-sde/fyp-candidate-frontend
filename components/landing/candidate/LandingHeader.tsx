@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getSession } from "@/lib/dal";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -6,7 +7,9 @@ const navLinks = [
   { label: "Open Roles", href: "/jobs" },
 ];
 
-export function LandingHeader() {
+export async function LandingHeader() {
+  const user = await getSession();
+
   return (
     <header className="sticky top-0 z-40 px-4 pt-4 md:px-6 md:pt-6">
       <div className="mx-auto max-w-[1000px] p-1 rounded-[1.75rem] bg-black/[0.02] border border-black/[0.05] ring-1 ring-black/[0.03] shadow-[0_16px_40px_-28px_rgba(0,0,0,0.4)] backdrop-blur-xl">
@@ -30,29 +33,55 @@ export function LandingHeader() {
             >
               Open Roles
             </Link>
-            <Link
-              href="/dashboard"
-              className="group inline-flex items-center gap-2 rounded-full pl-4 pr-1.5 py-1.5 text-[12px] font-medium bg-emerald-500 text-white hover:bg-emerald-600 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
-            >
-              Get Started
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/20 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:-translate-y-[1px]">
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 15 15"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M4.5 1.5H13.5V10.5H12V3.56066L2.56066 13L1.5 11.9393L10.9393 2.5H4.5V1.5Z"
-                    fill="currentColor"
-                    fillRule="evenodd"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </span>
-            </Link>
+            {user ? (
+              <Link
+                href="/dashboard"
+                className="group inline-flex items-center gap-2 rounded-full pl-4 pr-1.5 py-1.5 text-[12px] font-medium bg-emerald-500 text-white hover:bg-emerald-600 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
+              >
+                Dashboard
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/20 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:-translate-y-[1px]">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 15 15"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M4.5 1.5H13.5V10.5H12V3.56066L2.56066 13L1.5 11.9393L10.9393 2.5H4.5V1.5Z"
+                      fill="currentColor"
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </span>
+              </Link>
+            ) : (
+              <Link
+                href="/auth/sign-in"
+                className="group inline-flex items-center gap-2 rounded-full pl-4 pr-1.5 py-1.5 text-[12px] font-medium bg-emerald-500 text-white hover:bg-emerald-600 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
+              >
+                Get Started
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/20 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:-translate-y-[1px]">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 15 15"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M4.5 1.5H13.5V10.5H12V3.56066L2.56066 13L1.5 11.9393L10.9393 2.5H4.5V1.5Z"
+                      fill="currentColor"
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </span>
+              </Link>
+            )}
           </div>
         </div>
       </div>

@@ -1,10 +1,15 @@
-import Link from "next/link";
+"use client";
 
+import Link from "next/link";
+import { useActionState } from "react";
 import { AuthField } from "@/components/auth/AuthField";
 import { AuthPrimaryButton } from "@/components/auth/AuthPrimaryButton";
 import { AuthShell } from "@/components/auth/AuthShell";
+import { signUp } from "@/app/actions/auth";
 
 export function SignUpSection() {
+  const [state, action, pending] = useActionState(signUp, undefined);
+
   return (
     <AuthShell
       eyebrow="Create Account"
@@ -29,20 +34,37 @@ export function SignUpSection() {
         </p>
       }
     >
-      <form className="space-y-4" action="#" method="post">
-        <AuthField
-          id="fullName"
-          label="Full name"
-          placeholder="Ava Morgan"
-          required
-          helperText="Use your legal name for interview scheduling."
-        />
+      <form className="space-y-4" action={action}>
+        {state?.message && (
+          <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[13px] text-red-700">
+            {state.message}
+          </p>
+        )}
+
+        <div className="grid grid-cols-2 gap-3">
+          <AuthField
+            id="firstName"
+            label="First name"
+            placeholder="Ava"
+            required
+            error={state?.errors?.firstName?.[0]}
+          />
+          <AuthField
+            id="lastName"
+            label="Last name"
+            placeholder="Morgan"
+            required
+            error={state?.errors?.lastName?.[0]}
+          />
+        </div>
+
         <AuthField
           id="email"
           label="Email address"
           type="email"
           placeholder="name@domain.com"
           required
+          error={state?.errors?.email?.[0]}
         />
         <AuthField
           id="password"
@@ -50,7 +72,8 @@ export function SignUpSection() {
           type="password"
           placeholder="Create a secure password"
           required
-          helperText="Use at least 8 characters with a mix of letters and numbers."
+          helperText="At least 8 characters with one uppercase letter and one number."
+          error={state?.errors?.password?.[0]}
         />
         <AuthField
           id="confirmPassword"
@@ -58,6 +81,7 @@ export function SignUpSection() {
           type="password"
           placeholder="Re-enter your password"
           required
+          error={state?.errors?.confirmPassword?.[0]}
         />
 
         <label className="flex items-start gap-2 rounded-xl border border-black/[0.06] bg-black/[0.01] px-3 py-2 text-[12px] text-neutral-600">
@@ -73,17 +97,9 @@ export function SignUpSection() {
         </label>
 
         <div className="pt-2">
-          <AuthPrimaryButton>Create Account</AuthPrimaryButton>
-        </div>
-
-        <div className="pt-1 text-center text-[13px] text-neutral-600">
-          Already created your account?{" "}
-          <Link
-            href="/auth/onboarding"
-            className="font-semibold text-neutral-800 transition-colors hover:text-neutral-900"
-          >
-            Continue to onboarding
-          </Link>
+          <AuthPrimaryButton disabled={pending}>
+            {pending ? "Creating account…" : "Create Account"}
+          </AuthPrimaryButton>
         </div>
       </form>
     </AuthShell>
