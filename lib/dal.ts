@@ -6,6 +6,7 @@ import type {
   JobsListResponse,
   PublicJobDetail,
   ApplicationsListResponse,
+  InterviewsListResponse,
 } from "@/types/job";
 
 const API_BASE = process.env.BACKEND_URL ?? "http://localhost:4000";
@@ -76,13 +77,14 @@ export const getPublicJobBySlug = cache(async (slug: string): Promise<PublicJobD
 });
 
 export const getMyApplications = cache(
-  async (params?: { status?: string; page?: number }): Promise<ApplicationsListResponse | null> => {
+  async (params?: { status?: string; page?: number; limit?: number }): Promise<ApplicationsListResponse | null> => {
     const headers = await authHeaders();
     if (!headers) return null;
 
     const qs = new URLSearchParams();
     if (params?.status) qs.set("status", params.status);
     if (params?.page) qs.set("page", String(params.page));
+    if (params?.limit) qs.set("limit", String(params.limit));
 
     try {
       const res = await fetch(`${API_BASE}/api/applications?${qs.toString()}`, {
@@ -97,6 +99,23 @@ export const getMyApplications = cache(
     }
   }
 );
+
+export const getMyInterviews = cache(async (): Promise<InterviewsListResponse | null> => {
+  const headers = await authHeaders();
+  if (!headers) return null;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/interviews/my`, {
+      headers,
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { success: boolean; data: InterviewsListResponse };
+    return body.success ? body.data : null;
+  } catch {
+    return null;
+  }
+});
 
 export const checkApplicationStatus = cache(
   async (jobId: string): Promise<{ applied: boolean; status: string | null }> => {

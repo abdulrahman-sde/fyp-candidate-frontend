@@ -44,6 +44,7 @@ export interface ApplicationSummary {
   match_score: number | null;
   applied_at: string;
   updated_at: string;
+  interview: { id: string; status: string; scheduled_at: string | null; expires_at: string } | null;
 }
 
 export interface ApplicationsListResponse {
@@ -61,3 +62,18 @@ export interface ScreeningAnswer {
 export type ApplicationActionState =
   | { success?: boolean; message?: string; applicationId?: string }
   | undefined;
+
+export interface InterviewSummary {
+  id: string;
+  status: string;
+  scheduled_at: string | null;
+  expires_at: string;
+  access_token: string;
+  application_id: string;
+  job_title: string;
+  company_name: string;
+}
+
+export interface InterviewsListResponse {
+  interviews: InterviewSummary[];
+}
