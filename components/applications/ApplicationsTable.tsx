@@ -6,9 +6,11 @@ import type { ApplicationSummary } from "@/types/job";
 const STATUS_STYLES: Record<string, string> = {
   APPLIED: "bg-black/4 border border-black/10 text-foreground",
   SCREENING: "bg-amber-50 border border-amber-200 text-amber-700",
+  UNDER_REVIEW: "bg-amber-50 border border-amber-200 text-amber-700",
   SHORTLISTED: "bg-blue-50 border border-blue-200 text-blue-700",
+  INTERVIEW_SCHEDULED: "bg-purple-50 border border-purple-200 text-purple-700",
   INTERVIEWED: "bg-foreground text-background",
-  OFFERED: "bg-emerald-50 border border-emerald-300 text-emerald-700",
+  HIRED: "bg-emerald-50 border border-emerald-300 text-emerald-700",
   REJECTED: "bg-transparent border border-black/10 text-muted-foreground",
   WITHDRAWN: "bg-transparent border border-black/10 text-muted-foreground",
 };
@@ -16,9 +18,11 @@ const STATUS_STYLES: Record<string, string> = {
 const STATUS_LABELS: Record<string, string> = {
   APPLIED: "Applied",
   SCREENING: "Under Review",
+  UNDER_REVIEW: "Under Review",
   SHORTLISTED: "Shortlisted",
+  INTERVIEW_SCHEDULED: "Interview Scheduled",
   INTERVIEWED: "Interview Done",
-  OFFERED: "Offer Extended",
+  HIRED: "Hired",
   REJECTED: "Not Selected",
   WITHDRAWN: "Withdrawn",
 };
